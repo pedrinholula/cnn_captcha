@@ -1,0 +1,21 @@
+[[source]]
+url = "https://pypi.org/simple"
+verify_ssl = true
+name = "pypi"
+
+[packages]
+pandas = "*"
+scikit-learn = "*"
+"google.generativeai" = "*"
+python-dotenv = "*"
+tensorflow = "*"
+opencv-python = "*"
+matplotlib = "*"
+pillow = "*"
+pytesseract = "*"
+
+[dev-packages]
+ipykernel = "*"
+
+[requires]
+python_version = "3.11"

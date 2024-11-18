@@ -1,5 +1,5 @@
 from fastapi import APIRouter, UploadFile, File
-from utils import preprocess_image, load_model, predict_captcha
+from utils import preprocess_image, load_model, predict_captcha, decode_predictions
 import cv2
 
 router = APIRouter()
@@ -19,10 +19,8 @@ async def predict(file: UploadFile = File(...)):
     """
     image = await file.read()
     preprocessed_image = preprocess_image(image)
-    print("predict",preprocessed_image.shape)
-    cv2.imshow('Closing', preprocessed_image)
-    cv2.waitKey(0)
-    cv2.destroyAllWindows()
     prediction = predict_captcha(model, preprocessed_image)
+    prediction = decode_predictions(prediction,None)
+    print(prediction)
     # return "OK"
-    # return {"prediction": prediction}
+    return {"prediction": prediction}

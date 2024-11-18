@@ -2,6 +2,7 @@ from tensorflow.keras.models import load_model as lm
 from PIL import Image
 import numpy as np
 import cv2
+import pickle
 
 def preprocess_image(image):
     """
@@ -13,13 +14,11 @@ def preprocess_image(image):
     """
     img = np.frombuffer(image, np.uint8)
     img = cv2.imdecode(img, cv2.IMREAD_GRAYSCALE)
-    # img = np.expand_dims(img, axis=-1)
+    img = np.expand_dims(img, axis=-1)
     img = img/255.0
-    img = np.expand_dims(img, axis=0)
+    # img = np.expand_dims(img, axis=0)
     processed = image_processing(img)
     processed = cv2.resize(processed, (200, 50))
-    print('pre', processed.shape)
-
     return processed
 
 def load_model(path):
@@ -41,16 +40,18 @@ def predict_captcha(model, image):
     return:
         Classes predicted
     """
-    print("captcha",image.shape)
-    predictions = model.predict(image)
+    img = np.expand_dims(image, axis=-1)  # Adiciona dimensão do canal: (1, 50, 200, 1)
+    img = np.expand_dims(img, axis=0)  # Adiciona dimensão do lote: (1, 50, 200)
+    predictions = model.predict(img)
     predicted_classes = np.argmax(predictions, axis=-1)
+    # return 1
     return predicted_classes
 
 def image_processing(
         img,
         gaussian_kernel=None, sigma=0,
         median_kernel=None,
-        closing_k=(3,3),
+        closing_k=(3,5),
         dilation_k=(3,5),
         method = 'closing'):
     """
@@ -67,11 +68,9 @@ def image_processing(
     kernel_d = np.ones(dilation_k, np.uint8)
     kernel_c = np.ones(closing_k, np.uint8)
 
-    # (h, w) = img.shape[:2]
-    # print(img.shape)
-    # img = cv2.resize(img, (int(w*1.8), int(h*1.8)))
-    ret, thresh = cv2.threshold(img, 127, 255, cv2.THRESH_BINARY)
-    print("image", thresh.shape)
+    (h, w) = img.shape[:2]
+    img = cv2.resize(img, (int(w*1.8), int(h*1.8)))
+    ret, thresh = cv2.threshold(img, 0.5, 255, cv2.THRESH_BINARY)
 
     if median_kernel != None:
         thresh = cv2.medianBlur(thresh, median_kernel)
@@ -95,3 +94,32 @@ def image_processing(
         return closing
     else:
         return thresh
+
+
+def decode_predictions(predictions, encoder=None):
+
+    """
+    Decode as predictions to string.
+
+    Args:
+        predictions: Indexes array.
+        encoder: Encoder. None will use default encoder
+
+    Returns:
+        list: Decoded strings.
+    """
+
+    # Carregar o encoder salvo se não foi passado o encoder
+    if encoder == None:
+        with open("./models/production_encoder.pkl", "rb") as f:
+            enc = pickle.load(f)
+    else:
+        enc=encoder
+    # Redimensiona para passar ao inverse_transform
+    # Obter as classes do encoder (os caracteres correspondentes às posições)
+    classes = enc.categories_[0]
+    print(classes, predictions)
+
+    # Mapear índices para os caracteres
+    decoded_string = "".join(classes[index] for index in predictions[0])
+    return decoded_string

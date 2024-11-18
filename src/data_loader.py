@@ -2,8 +2,30 @@ import os
 import numpy as np
 import cv2
 from image_processing import image_processing
+from sklearn.model_selection import train_test_split
+from sklearn.preprocessing import OneHotEncoder
 
-def load_images_and_labels(data_dir, img_shape=(50, 200)):
+def encode_labels(labels, max_length=5):
+    # Flatten os caracteres (separar cada caractere)
+    chars = [char for label in labels for char in label]
+    chars = np.array(chars).reshape(-1, 1)
+    print(chars)
+    # Criar o OneHotEncoder
+    encoder = OneHotEncoder(handle_unknown='ignore', sparse_output=False)
+    encoder.fit(chars)
+
+    # Codificar cada rótulo
+    encoded_labels = []
+    for label in labels:
+        # Codificar cada caractere e concatenar
+        encoded = np.vstack([encoder.transform([[char]]) for char in label])
+        encoded_labels.append(encoded)
+
+    # Padronizar para comprimento fixo (max_length)
+    encoded_labels = np.array(encoded_labels).reshape(-1, 5, 19)
+    return encoded_labels, encoder
+
+def load_images_and_labels(data_dir, img_shape=(200,50)):
     images = []
     labels = []
     # dilation or close

@@ -8,7 +8,7 @@ def image_processing(
 		median_kernel=None,
 		closing_k=(5,5),
 		dilation_k=(3,5),
-		method = 'closing'):
+		method = 'dilation'):
 	kernel_d = np.ones(dilation_k, np.uint8)
 	kernel_c = np.ones(closing_k, np.uint8)
 

@@ -1,29 +1,32 @@
 import os
+import pickle
 import numpy as np
 import cv2
-from image_processing import image_processing
+from src.image_processing import image_processing
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import OneHotEncoder
 
-def encode_labels(labels, max_length=5):
-    # Flatten os caracteres (separar cada caractere)
-    chars = [char for label in labels for char in label]
-    chars = np.array(chars).reshape(-1, 1)
-    print(chars)
-    # Criar o OneHotEncoder
-    encoder = OneHotEncoder(handle_unknown='ignore', sparse_output=False)
-    encoder.fit(chars)
+def encode_labels(labels, max_length=5, encoder = None):
 
+    if encoder == None:
+        # Flatten os caracteres (separar cada caractere)
+        chars = [char for label in labels for char in label]
+        chars = np.array(chars).reshape(-1, 1)
+        # Criar o OneHotEncoder
+        enc = OneHotEncoder(handle_unknown='ignore', sparse_output=False)
+        enc.fit(chars)
+    else:
+        enc = encoder
     # Codificar cada rótulo
     encoded_labels = []
     for label in labels:
         # Codificar cada caractere e concatenar
-        encoded = np.vstack([encoder.transform([[char]]) for char in label])
+        encoded = np.vstack([enc.transform([[char]]) for char in label])
         encoded_labels.append(encoded)
 
     # Padronizar para comprimento fixo (max_length)
     encoded_labels = np.array(encoded_labels).reshape(-1, 5, 19)
-    return encoded_labels, encoder
+    return encoded_labels, enc
 
 def load_images_and_labels(data_dir, img_shape=(200,50)):
     images = []
@@ -59,6 +62,10 @@ def load_images_and_labels(data_dir, img_shape=(200,50)):
         images, labels, test_size=0.2, random_state=42
     )
     train_labels, train_encoder = encode_labels(train_labels)
-    test_labels, test_encoder = encode_labels(test_labels)
+    test_labels, test_encoder = encode_labels(test_labels,encoder=train_encoder)
+
+    # Salvar o encoder ajustado
+    with open("./models/production_encoder.pkl", "wb") as f:
+        pickle.dump(train_encoder, f)
 
     return train_images, test_images, train_labels, test_labels

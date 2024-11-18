@@ -6,7 +6,7 @@ Documentação mais detalhada em DOC.MD
 ## Inicializando
 Baixar as dependencias no Pipfile
 ### Treinando o modelo
-Da pasta principal, executar `./.src/train.py`
+Da pasta principal, executar `python main.py`
 ### Iniciar a API
 Executar `cd api && fastapi dev main.py`
 

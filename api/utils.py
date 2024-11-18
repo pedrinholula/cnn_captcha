@@ -23,9 +23,24 @@ def preprocess_image(image):
     return processed
 
 def load_model(path):
+    """
+    Load the model
+    parameters:
+        path: Path of the model;
+    return:
+        tf loaded model
+    """
     return lm(path)
 
 def predict_captcha(model, image):
+    """
+    Predict the image using the model
+    parameters:
+        model: Model to predict
+        image: image to be predicted
+    return:
+        Classes predicted
+    """
     print("captcha",image.shape)
     predictions = model.predict(image)
     predicted_classes = np.argmax(predictions, axis=-1)
@@ -38,6 +53,17 @@ def image_processing(
         closing_k=(3,3),
         dilation_k=(3,5),
         method = 'closing'):
+    """
+    image pre-processing to use on model.
+    parameters:
+        img: image to be pre-processed
+        gaussian_kernel: Kernel to use on gaussian filter or None to pass,
+        sigma: Gaussian filter sigma,
+        median_kernel: Kernel to use on median filter or None to pass,
+        closing_k: Kernel to use on closing filter. Default (3,3),
+        dilation_k: Kernel to use on dilation filter. Default (3,5),
+        method = Method od filtering - closing, dilation or None. Default 'closing'.
+    """
     kernel_d = np.ones(dilation_k, np.uint8)
     kernel_c = np.ones(closing_k, np.uint8)
 
